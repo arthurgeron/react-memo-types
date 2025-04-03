@@ -1,0 +1,49 @@
+{
+  "name": "@arthurgeron/react-memo-types",
+  "version": "0.1.0",
+  "description": "Type-safe React memoization using TypeScript declaration augmentation.",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rspack build",
+    "dev": "rspack dev",
+    "lint": "eslint .",
+    "test": "bun test"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "memoization",
+    "performance",
+    "typesafe"
+  ],
+  "author": "Arthur Geron <arthurgeron@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arthurgeron/react-memo-types.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arthurgeron/react-memo-types/issues"
+  },
+  "homepage": "https://github.com/arthurgeron/react-memo-types#readme",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@rspack/cli": "^1.3.2",
+    "@rspack/core": "^1.3.2",
+    "@types/bun": "latest",
+    "@types/react": "^19.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "eslint": "^9.23.0",
+    "eslint-plugin-react-hooks": "^5.2.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
