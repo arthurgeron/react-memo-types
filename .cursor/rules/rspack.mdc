@@ -33,4 +33,4 @@ RSPack is used for bundling the TypeScript declaration files and a minimal JavaS
 ## Best Practices
 - Keep the RSPack configuration focused on producing the correct library output (UMD format, externalizing React).
 - Rely on `tsconfig.json` (`declaration: true`, `declarationDir`) for generating the `.d.ts` files, RSPack mainly bundles the JS and ensures the structure.
-- Refer to RSPack documentation for configuration options: [https://rspack.dev/guide/](https://rspack.dev/guide/) 
+- Refer to RSPack documentation for configuration options: [https://rspack.dev/guide/](mdc:https:/rspack.dev/guide) 

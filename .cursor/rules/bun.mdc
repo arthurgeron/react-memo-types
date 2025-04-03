@@ -22,7 +22,7 @@ Bun is used as the runtime, package manager, bundler (via integration, although 
 ## Testing
 - Tests are written using Bun's built-in test runner (`bun test`).
 - Place test files in a `test` directory or alongside the code they test (e.g., `*.test.ts`).
-- Refer to the Bun documentation for test APIs: [https://bun.sh/docs/test/writing](https://bun.sh/docs/test/writing)
+- Refer to the Bun documentation for test APIs: [https://bun.sh/docs/test/writing](mdc:https:/bun.sh/docs/test/writing)
 
 ## Key Files
 - `package.json`: Project metadata and scripts.

@@ -21,3 +21,10 @@ The goal is to catch potential re-rendering issues caused by unmemoized props pa
 - **Compatibility:** Aim to maintain compatibility with standard React types and common patterns. Avoid overly restrictive types that might cause false positives.
 - **Documentation:** Update the README and any relevant rule files if changes affect usage or core concepts.
 - **Simplicity:** Keep the type definitions as straightforward as possible while achieving the desired enforcement. 
+
+
+## Relevant Links
+- [TypeScript Documentation - Declaration Merging](mdc:https:/www.typescriptlang.org/docs/handbook/declaration-merging.html)
+- [DEV Community - Extending Various TypeScript Type Declarations](mdc:https:/dev.to/maciek_grzybek/extending-various-typescript-type-declarations-a-field-guide-3l4f)
+- [Medium - Generics and Augmentation Will Make You a TypeScript Wizard](mdc:https:/medium.com/iqoqo-engineering/generics-and-augmentation-will-make-you-a-typescript-wizard-a706b41732d2)
+- [Stack Overflow - Adding to Existing Library TypeScript Types](mdc:https:/stackoverflow.com/questions/51269341/adding-to-existing-library-typescript-types-with-a-new-definition-file)
