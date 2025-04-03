@@ -1,5 +1,5 @@
 # @arthurgeron/react-memo-types
-
+> Not yet published   
 [![npm version](https://badge.fury.io/js/%40arthurgeron%2Freact-memo-types.svg)](https://badge.fury.io/js/%40arthurgeron%2Freact-memo-types)
 
 **Type-safe React memoization at compile time.**
