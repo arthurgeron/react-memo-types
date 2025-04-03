@@ -5,7 +5,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rspack build",
+    "build": "rspack build && tsc --emitDeclarationOnly --outDir dist -p tsconfig.json",
     "dev": "rspack dev",
     "lint": "eslint .",
     "test": "bun test"

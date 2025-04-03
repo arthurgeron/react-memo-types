@@ -13,10 +13,13 @@
     "declaration": true,
     "declarationDir": "./dist",
     "outDir": "./dist",
-    "rootDir": "./src",
     "jsx": "react-jsx",
     "noEmit": false,
     "types": ["@types/react", "bun-types"],
+    "baseUrl": ".",
+    "paths": {
+      "@arthurgeron/react-memo-types": ["./dist/index.d.ts"]
+    },
 
     // Bundler mode
     "moduleDetection": "force",
@@ -31,6 +34,5 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "examples"]
+  "exclude": ["node_modules", "dist"]
 }
