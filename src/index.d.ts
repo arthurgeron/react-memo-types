@@ -1,69 +1,64 @@
 import 'react';
 
-// Type marker for memoized values
+// --- Prerequisite Types (Defined AND Exported outside module augmentation) ---
 export type Memoized<T> = T & { readonly __memoized: unique symbol };
+type Primitive = string | number | boolean | symbol | null | undefined;
+export type RequireMemoizedProps<P extends object> = {
+  [K in keyof P]: P[K] extends Primitive | React.ReactElement
+    ? P[K]
+    : P[K] extends (...args: unknown[]) => unknown
+      ? Memoized<P[K]>
+      : P[K] extends object
+        ? Memoized<P[K]>
+        : P[K];
+};
 
+// --- Module Augmentation ---
 declare module 'react' {
-  // Re-declare DependencyList to include Memoized<any>
-  // We use unknown here for better type safety than any
-  type MemoizedDependencyList = ReadonlyArray<string | number | boolean | symbol | null | undefined | Memoized<unknown>>;
 
-  // Override useMemo to return Memoized types
-  function useMemo<T>(factory: () => T, deps: MemoizedDependencyList | undefined): Memoized<T>;
+  // --- Types defined/used internally by augmentation ---
+  // (These don't need to be exported from the module itself)
 
-  // Override useCallback to return Memoized functions
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function useCallback<T extends (...args: any[]) => any>(
-    callback: T,
-    deps: MemoizedDependencyList | undefined
-  ): Memoized<T>;
+  // Helper type to conditionally add Memoized brand
+  type MemoizeIfNeeded<T> = T extends Primitive ? T : Memoized<T>;
 
-  // Enhance memo to require Memoized props for non-primitive types
-  // We use a conditional type to check if P[K] is a function or an object that isn't ReactElement
-  // ReactElements (JSX) are typically stable if their props are stable, so we don't force memoization on them.
+  // Stricter type for dependency arrays referencing top-level Memoized
+  type StrictDependencyList = ReadonlyArray<Primitive | Memoized<object> | Memoized<(...args: unknown[]) => unknown>>; // Using unknown
+
+  // Helper component type referencing top-level RequireMemoizedProps
+  type ComponentWithMemoizedProps<T extends ComponentType<object>> =
+    T extends FunctionComponent<infer P>
+      ? FunctionComponent<RequireMemoizedProps<P>>
+    : T extends ComponentClass<infer P, infer S>
+      ? ComponentClass<RequireMemoizedProps<P>, S>
+      : T extends ComponentType<infer P>
+        ? ComponentType<RequireMemoizedProps<P & object>> // Ensure P is object
+        : never; // Fallback
+
+  // --- Hook Augmentations (Referencing internal StrictDependencyList/MemoizeIfNeeded) ---
+  function useMemo<T>(factory: () => T, deps: StrictDependencyList | undefined): MemoizeIfNeeded<T>;
+  function useCallback<T extends (...args: unknown[]) => unknown>(callback: T, deps: StrictDependencyList): Memoized<T>; // Using unknown
+  function useEffect(effect: EffectCallback, deps?: StrictDependencyList): void;
+  function useLayoutEffect(effect: EffectCallback, deps?: StrictDependencyList): void;
+  function useInsertionEffect(effect: EffectCallback, deps?: StrictDependencyList): void;
+  function useImperativeHandle<T, R extends T>(ref: Ref<T> | undefined, init: () => R, deps?: StrictDependencyList): void;
+
+  // --- React.memo Augmentation (Referencing internal ComponentWithMemoizedProps and top-level RequireMemoizedProps) ---
+
+  // Augment React.memo signatures to return MemoizedExoticComponent wrapping the *modified* component type
+  // Overload 1: FunctionComponent
   function memo<P extends object>(
-    Component: ComponentType<P>,
-    propsAreEqual?: (prevProps: Readonly<P>, nextProps: Readonly<P>) => boolean
-  ): MemoizedExoticComponent<ComponentType<P>> & {
-    readonly type: ComponentType<P>;
-    // This is the core enhancement: map props to require Memoized<T> for objects/functions
-    // We explicitly exclude ReactElement to avoid unnecessary memoization requirements for JSX children/props.
-    // We also exclude primitive types and null/undefined.
-    propTypes?: { 
-      [K in keyof P]: P[K] extends 
-        | string 
-        | number 
-        | boolean 
-        | symbol 
-        | null 
-        | undefined 
-        | ReactElement 
-        ? P[K] 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        : P[K] extends (...args: any[]) => any 
-          ? Memoized<P[K]> 
-          : P[K] extends object 
-            ? Memoized<P[K]> 
-            : P[K]; 
-    }
-  };
+      Component: FunctionComponent<P>,
+      // propsAreEqual MUST now compare RequireMemoizedProps<P>
+      propsAreEqual?: (prevProps: Readonly<RequireMemoizedProps<P>>, nextProps: Readonly<RequireMemoizedProps<P>>) => boolean
+  ): MemoizedExoticComponent<FunctionComponent<RequireMemoizedProps<P>>>; // Return type wraps RequireMemoizedProps<P>
 
-  // Type-safe hooks that expect potentially memoized dependencies
-  function useEffect(
-    effect: EffectCallback,
-    deps?: MemoizedDependencyList | undefined
-  ): void;
-
-  function useLayoutEffect(
-    effect: EffectCallback,
-    deps?: MemoizedDependencyList | undefined
-  ): void;
-
-  function useImperativeHandle<T, R extends T>(
-    ref: Ref<T> | undefined,
-    init: () => R,
-    deps?: MemoizedDependencyList | undefined
-  ): void;
+  // Overload 2: Generic ComponentType (including class components)
+  function memo<T extends ComponentType<object>>(
+      Component: T,
+       // propsAreEqual MUST now compare RequireMemoizedProps<ComponentProps<T>>
+      propsAreEqual?: (prevProps: Readonly<RequireMemoizedProps<ComponentProps<T>>>, nextProps: Readonly<RequireMemoizedProps<ComponentProps<T>>>) => boolean
+  ): MemoizedExoticComponent<ComponentWithMemoizedProps<T>>; // Return type wraps ComponentWithMemoizedProps<T>
 
   // Note: We don't override useContext, useReducer, useRef, useState etc.
   // as their core behavior isn't directly tied to dependency arrays in the same way.
