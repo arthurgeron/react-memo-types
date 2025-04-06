@@ -1,75 +1,59 @@
-# @arthurgeron/react-memo-types
-> Not yet published   
-[![npm version](https://badge.fury.io/js/%40arthurgeron%2Freact-memo-types.svg)](https://badge.fury.io/js/%40arthurgeron%2Freact-memo-types)
+# @arthurgeron/react-memo-types (Proof of Concept - Not Functional)
 
-**Type-safe React memoization at compile time.**
+**⚠️ Important Note:** This repository serves as a **Proof of Concept** and is **not fully functional** due to limitations in TypeScript's declaration merging capabilities for modifying complex generic signatures like those used in `React.memo`. The core idea of enforcing memoization via type augmentation was later refined and proposed directly to React's official types in [DefinitelyTyped PR #72416](https://github.com/DefinitelyTyped/DefinitelyTyped/pull/72416). This package **has not been and will not be published**.
 
-Prevent unnecessary React re-renders caused by unmemoized props with zero runtime cost. This package provides TypeScript definitions that augment the built-in React types (`useMemo`, `useCallback`, `React.memo`, effect hooks) to enforce proper memoization, helping you catch and fix performance issues *before* they become runtime headaches.
+**Type-safe React memoization at compile time (Conceptual).**
 
-## The Problem
+This package *demonstrates* the concept of using TypeScript definitions to augment built-in React types (`useMemo`, `useCallback`, `React.memo`, effect hooks) to enforce proper memoization conceptually. The goal was to catch and fix performance issues *before* they become runtime headaches.
+
+## The Problem (Addressed in the PR)
 
 Passing unstable object or function references (those created anew on each render) as props to components wrapped in `React.memo`, or using them in hook dependency arrays (`useEffect`, `useLayoutEffect`, etc.), defeats the purpose of memoization. This leads to unexpected and often hard-to-debug performance bottlenecks caused by excessive re-renders.
 
 While static analysis tools (like ESLint plugins) can help detect some cases, they have limitations, can produce false positives/negatives, and only provide suggestions at lint time.
 
-## The Solution: Compile-Time Guarantees
+## The Proposed Solution (in DefinitelyTyped PR)
 
-`@arthurgeron/react-memo-types` leverages TypeScript's [Declaration Merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) to modify React's own type definitions *within your project*. It intelligently enforces that non-primitive props passed to `React.memo` components and dependencies used in hooks are stable references, typically achieved by wrapping them in `React.useMemo` or `React.useCallback`.
+The ultimate goal, explored in [DefinitelyTyped PR #72416](https://github.com/DefinitelyTyped/DefinitelyTyped/pull/72416), is to leverage TypeScript's type system directly within React's canonical types to modify `React.memo`, `useMemo`, `useCallback`, and hook dependency arrays. This would enforce that non-primitive props and dependencies are stable references, typically achieved by wrapping them in `React.useMemo` or `React.useCallback`.
 
-**This means TypeScript itself becomes your memoization watchdog, providing errors directly in your IDE!**
+**The aim is to make TypeScript itself the memoization watchdog, providing errors directly in your IDE.**
 
-## Key Benefits
+## Why This Package Isn't Fully Functional
 
-*   ✅ **Compile-Time Safety:** Catch memoization errors *as you type*, directly in your IDE.
-*   🚀 **Zero Runtime Overhead:** Purely a type-level enhancement using declaration merging. Adds absolutely nothing to your production bundle size or performance footprint.
-*   🧘 **No Code Changes Required:** Simply install, configure `tsconfig.json` (see Setup), and immediately benefit from stricter checks across your project.
-*   ✨ **Works Automatically (Even with Libraries!):** Because it patches React's core types, these checks apply to *any* component correctly typed with `React.memo` – **including those imported from third-party libraries** – without any extra configuration.
-*   💡 **Instant Feedback:** Get immediate error highlighting and feedback within VS Code and other TypeScript-aware editors, enabling a faster development loop.
-*   🤝 **Complements Linters:** Use it alongside ESLint rules for a comprehensive approach. This library provides *compile-time guarantees*, while linters offer suggestions and checks for other patterns.
+While augmenting the return types of `useMemo` and `useCallback` using declaration merging works (as demonstrated partially here), reliably augmenting the *input* prop types for a generically typed higher-order component like `React.memo` proved problematic with TypeScript's declaration merging at the time of creation. The necessary modifications to enforce `Memoized<T>` on props within the generic `React.memo` signature were not effectively applied through external augmentation alone.
 
-## Installation
+This limitation led to proposing the changes directly to the upstream `@types/react` package (see the PR linked above) for a robust and integrated solution.
 
-```bash
-# Using npm
-npm install @arthurgeron/react-memo-types --save-dev
+## Conceptual Benefits (Demonstrated by the Idea)
 
-# Using yarn
-yarn add @arthurgeron/react-memo-types --dev
+*   ✅ **Compile-Time Safety:** The *concept* aims to catch memoization errors *as you type*.
+*   🚀 **Zero Runtime Overhead:** The *concept* is purely type-level.
+*   🧘 **Minimal Code Changes (Ideally):** The *goal* was simple setup.
+*   ✨ **Automatic Checks (Ideally):** The *goal* was to patch React's core types.
+*   💡 **Instant Feedback:** The *concept* leverages IDE integration.
+*   🤝 **Complements Linters:** The *concept* works alongside linters.
 
-# Using bun
-bun add @arthurgeron/react-memo-types -d
-```
+## Installation & Setup
 
-## Setup
+**(Not Applicable - This package is not published or functional)**
 
-Ensure TypeScript picks up the augmented types by including the package in your `tsconfig.json`'s `types` array. If you don't have a `types` array, adding it might be necessary.
+You cannot install this package. Please refer to the [DefinitelyTyped PR #72416](https://github.com/DefinitelyTyped/DefinitelyTyped/pull/72416) for the proposed implementation within React's official types.
 
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    // ... other options
-    "types": [
-      "node", // Or your specific environment types ("bun-types", etc.)
-      "react",
-      "@types/react", // Often included implicitly, but good to be explicit
-      "@arthurgeron/react-memo-types" // Add this line!
-      // ... potentially others like "jest" or "@testing-library/jest-dom"
-    ]
-  }
-}
-```
+## Usage Example (Conceptual)
 
-**That's it!** Restart your TS server/IDE window if needed, and the enhanced type checking will be active.
-
-## Usage Example
-
-Consider this standard memoized component:
+The following example illustrates *how the types would ideally work* if the augmentation were fully successful. The type errors shown are what the DefinitelyTyped PR aims to achieve.
 
 ```tsx
 import React from 'react';
-// No direct import needed here if setup via tsconfig.json is correct
-// import type {} from '@arthurgeron/react-memo-types'; 
+// Note: No import needed from this package, the goal was tsconfig integration
+
+// --- This part works via augmentation ---
+type Memoized<T> = T & { readonly __memoized: unique symbol };
+declare module 'react' {
+  function useMemo<T>(factory: () => T, deps: React.DependencyList | undefined): Memoized<T>;
+  function useCallback<T extends (...args: any[]) => any>(callback: T, deps: React.DependencyList): Memoized<T>;
+}
+// --- End working part ---
 
 interface MyComponentProps {
   userInfo: { name: string; age: number }; // An object prop
@@ -88,7 +72,7 @@ const MyComponent = React.memo(({ userInfo, onSave }: MyComponentProps) => {
 });
 
 function Parent() {
-  // CORRECT: Props are memoized using React hooks
+  // CORRECT: Props are memoized using React hooks (returns Memoized<T>)
   const memoizedUserInfo = React.useMemo(() => ({ name: 'Alice', age: 30 }), []);
   const memoizedOnSave = React.useCallback(() => { console.log('Saving Alice...'); }, []);
 
@@ -98,85 +82,62 @@ function Parent() {
 
   return (
     <div>
-      <h2>Memoized Component Examples</h2>
+      <h2>Conceptual Memoized Component Examples</h2>
 
-      {/* === OK === */}
-      {/* Both props are stable references, MyComponent renders once. */}
+      {/* === OK (Conceptually) === */}
+      {/* Both props are Memoized<T>, MyComponent renders once. */}
       <MyComponent userInfo={memoizedUserInfo} onSave={memoizedOnSave} />
 
       <hr />
 
-      {/* === TYPE ERROR! === */}
-      {/* `regularUserInfo` is not wrapped in useMemo. */}
-      {/* Error: Type '{ name: string; age: number; }' is not assignable to type 'Memoized<{ name: string; age: number; }>' */}
+      {/* === TYPE ERROR! (Conceptual Goal) === */}
+      {/* `regularUserInfo` is not Memoized<T>. This error *does not* occur */}
+      {/* correctly with this package due to augmentation limits, but *would* */}
+      {/* occur with the proposed canonical type changes. */}
+      {/* Hypothetical Error: Type '{ name: string; age: number; }' is not assignable to type 'Memoized<{ name: string; age: number; }>' */}
       {/* <MyComponent userInfo={regularUserInfo} onSave={memoizedOnSave} /> */}
-      
+
       <hr />
 
-      {/* === TYPE ERROR! === */}
-      {/* `regularOnSave` is not wrapped in useCallback. */}
-      {/* Error: Type '() => void' is not assignable to type 'Memoized<() => void>' */}
+      {/* === TYPE ERROR! (Conceptual Goal) === */}
+      {/* `regularOnSave` is not Memoized<T>. Similar limitation as above. */}
+      {/* Hypothetical Error: Type '() => void' is not assignable to type 'Memoized<() => void>' */}
       {/* <MyComponent userInfo={memoizedUserInfo} onSave={regularOnSave} /> */}
     </div>
   );
 }
 ```
 
-With `@arthurgeron/react-memo-types` installed and configured, TypeScript will flag the lines marked with `TYPE ERROR!` directly in your editor.
+## How it Works (Conceptual & Limitations)
 
-## How it Works (Under the Hood)
-
-1.  **Declaration Merging:** It uses [TypeScript Declaration Merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) to augment the global `react` module definition.
+1.  **Declaration Merging:** It *attempts* to use [TypeScript Declaration Merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) to augment the global `react` module definition.
 2.  **`Memoized<T>` Marker:** It defines a branded type `Memoized<T>` (internally `T & { readonly __memoized: unique symbol }`).
-3.  **Hook Augmentation:** It overrides the type signatures of `React.useMemo` and `React.useCallback` to return `Memoized<T>` instead of just `T`.
-4.  **`React.memo` Augmentation:** It modifies the type signature of `React.memo` components to *require* `Memoized<T>` for any non-primitive prop (objects, arrays, functions).
-5.  **Dependency Array Augmentation:** Hooks like `useEffect`, `useLayoutEffect`, etc., are updated to correctly accept `Memoized<T>` values within their dependency arrays.
+3.  **Hook Augmentation (Successful Part):** It successfully overrides the type signatures of `React.useMemo` and `React.useCallback` to return `Memoized<T>`.
+4.  **`React.memo` Augmentation (Unsuccessful Part):** It *attempts* to modify the type signature of `React.memo` components to *require* `Memoized<T>` for non-primitive props. However, due to the complexity of `React.memo`'s generic signature, external declaration merging fails to enforce this constraint reliably.
+5.  **Dependency Array Augmentation (Partially Successful):** Hooks like `useEffect` *can* be updated to accept `Memoized<T>` values, but the full enforcement relies on the upstream changes proposed in the PR.
 
-This entire process happens at the type level and is erased during compilation, resulting in **zero runtime impact**.
+This entire process *should* happen at the type level and be erased during compilation, resulting in **zero runtime impact**.
 
 ## Utility for Library Authors (`WithMemoizedProps`)
 
-While the automatic checking works for consumers, if you are *authoring* a component library and want to explicitly signal that your memoized component expects memoized props (perhaps for documentation generation or stricter internal checks), you can use the `WithMemoizedProps<Props>` utility type when exporting:
+**(Not Applicable - Functionality relies on successful `React.memo` augmentation)**
 
-```tsx
-import React from 'react';
-// Import the utility type directly from the package
-import { WithMemoizedProps } from '@arthurgeron/react-memo-types/utils'; // Assuming utils.d.ts is exported
+The `WithMemoizedProps<Props>` utility type provided in `utils.d.ts` was intended for library authors but is ineffective without the core `React.memo` augmentation working correctly.
 
-interface ButtonProps {
-  onClick: (e: React.MouseEvent) => void;
-  style?: object; // e.g., { color: string }
-  label: string;
-}
+## Inspiration & The Path Forward
 
-const ButtonImpl = (props: ButtonProps) => {
-  console.log(`Rendering Button: ${props.label}`);
-  return <button type="button" onClick={props.onClick} style={props.style}>{props.label}</button>;
-};
+This repository was created as an initial exploration based on the ideas from [`eslint-plugin-react-usememo`](https://github.com/arthurgeron/eslint-plugin-react-usememo). Discovering the limitations of declaration merging for `React.memo` led to the creation of the [DefinitelyTyped PR #72416](https://github.com/DefinitelyTyped/DefinitelyTyped/pull/72416), which proposes integrating these stricter checks directly into React's official type definitions. That PR represents the viable path forward for this concept.
 
-// Export the memoized component with explicitly enforced prop types
-// Note: You might need to adjust your build process to expose the utils entrypoint
-export const Button = React.memo(ButtonImpl) as React.FC<WithMemoizedProps<ButtonProps>>;
-```
-
-Now, users of *your* `Button` component will see the `Memoized<T>` requirement directly on the props in their IDE tooltips, in addition to getting the type errors if they pass non-memoized values.
-
-*(Note: Ensure your package build process exports the `utils` types correctly if you intend for library authors to use `WithMemoizedProps` directly.)*
-
-## Inspiration & Further Reading
-
-This library was heavily inspired by its spiritual predecessor, [`eslint-plugin-react-usememo`](https://github.com/arthurgeron/eslint-plugin-react-usememo). While `@arthurgeron/react-memo-types` focuses on providing **compile-time guarantees** through TypeScript, the ESLint plugin operates at **lint time**.
-
-The documentation for `eslint-plugin-react-usememo` provides excellent, detailed explanations and guidelines on the *principles* of React memoization – including crucial advice on **when *not* to memoize** and the reasoning behind memoizing specific patterns. We highly recommend reading its documentation for a deeper conceptual understanding:
+We highly recommend reading the documentation for `eslint-plugin-react-usememo` for a deeper conceptual understanding of React memoization principles:
 
 *   **[Main README](https://github.com/arthurgeron/eslint-plugin-react-usememo):** Covers the general purpose and guidelines.
-*   **[Rule: `require-usememo`](https://github.com/arthurgeron/eslint-plugin-react-usememo/blob/main/docs/rules/require-usememo.md):** Detailed examples and rationale for memoizing props and hook dependencies.
+*   **[Rule: `require-usememo`](https://github.com/arthurgeron/eslint-plugin-react-usememo/blob/main/docs/rules/require-usememo.md):** Detailed examples and rationale.
 
-Understanding these concepts will help you apply memoization effectively, even when relying on the type safety provided by this package.
+Understanding these concepts is crucial for effective memoization.
 
 ## Contributing
 
-Contributions are welcome! Please see the contribution guidelines within the `.cursor/rules` directory if you have access to the repository via Cursor, or open an issue/PR on GitHub.
+Contributions to *this specific repository* are unlikely given its status as a non-functional PoC. Please direct efforts and feedback towards the [DefinitelyTyped PR #72416](https://github.com/DefinitelyTyped/DefinitelyTyped/pull/72416).
 
 ## License
 
